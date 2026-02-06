@@ -3,6 +3,52 @@ import React, { useState, useRef } from 'react';
 import { RoomRequirement, RoomType, FurnitureItem } from '../types';
 import { Plus, Trash2, Armchair, X, Image as ImageIcon, Upload, FileText, Link as LinkIcon } from 'lucide-react';
 
+/**
+ * Compress image to reduce size for Firestore storage
+ * @param file - Image file to compress
+ * @param maxWidth - Maximum width (default 800px)
+ * @param quality - JPEG quality 0-1 (default 0.7)
+ * @returns Promise with base64 string
+ */
+const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        // Scale down if needed
+        if (width > maxWidth) {
+          height = (height * maxWidth) / width;
+          width = maxWidth;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('Failed to get canvas context'));
+          return;
+        }
+
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Convert to JPEG with compression
+        const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+        resolve(compressedBase64);
+      };
+      img.onerror = () => reject(new Error('Failed to load image'));
+      img.src = e.target?.result as string;
+    };
+    reader.onerror = () => reject(new Error('Failed to read file'));
+    reader.readAsDataURL(file);
+  });
+};
+
 interface RoomEditorProps {
   rooms: RoomRequirement[];
   onChange: (rooms: RoomRequirement[]) => void;
@@ -77,37 +123,42 @@ export const RoomEditor: React.FC<RoomEditorProps> = ({ rooms, onChange }) => {
     });
   };
 
-  const handleFurnitureImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFurnitureImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !editingFurniture) return;
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
+    try {
+      const compressedImage = await compressImage(file);
       setEditingFurniture({
         ...editingFurniture,
-        furniture: { ...editingFurniture.furniture, image: reader.result as string }
+        furniture: { ...editingFurniture.furniture, image: compressedImage }
       });
-    };
-    reader.readAsDataURL(file);
+    } catch (error) {
+      console.error('Failed to compress image:', error);
+    }
   };
 
-  const handleRoomImageUpload = (roomId: string, e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleRoomImageUpload = async (roomId: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
 
     const room = rooms.find(r => r.id === roomId);
     if (!room) return;
 
-    Array.from(files).forEach((file: File) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const currentImages = room.images || [];
-        updateRoom(roomId, {
-          images: [...currentImages, reader.result as string]
-        });
-      };
-      reader.readAsDataURL(file);
-    });
+    for (const file of Array.from(files)) {
+      try {
+        const compressedImage = await compressImage(file);
+        const currentRoom = rooms.find(r => r.id === roomId);
+        if (currentRoom) {
+          const currentImages = currentRoom.images || [];
+          updateRoom(roomId, {
+            images: [...currentImages, compressedImage]
+          });
+        }
+      } catch (error) {
+        console.error('Failed to compress image:', error);
+      }
+    }
     e.target.value = '';
   };
 
