@@ -1,7 +1,7 @@
 
 import React, { useState, useRef } from 'react';
 import { RoomRequirement, RoomType, FurnitureItem } from '../types';
-import { Plus, Trash2, Armchair, X, Image as ImageIcon, Upload, FileText, Link as LinkIcon } from 'lucide-react';
+import { Plus, Trash2, Armchair, X, Image as ImageIcon, Upload, FileText, Link as LinkIcon, Edit } from 'lucide-react';
 
 /**
  * Compress image to reduce size for Firestore storage
@@ -55,7 +55,7 @@ interface RoomEditorProps {
 }
 
 export const RoomEditor: React.FC<RoomEditorProps> = ({ rooms, onChange }) => {
-  const [editingFurniture, setEditingFurniture] = useState<{ roomId: string, furniture: Partial<FurnitureItem> } | null>(null);
+  const [editingFurniture, setEditingFurniture] = useState<{ roomId: string, furniture: Partial<FurnitureItem>, isEditing: boolean } | null>(null);
   const fileInputRefs = useRef<{ [roomId: string]: HTMLInputElement | null }>({});
   const furnitureImageRef = useRef<HTMLInputElement | null>(null);
 
@@ -82,14 +82,23 @@ export const RoomEditor: React.FC<RoomEditorProps> = ({ rooms, onChange }) => {
   const startAddingFurniture = (roomId: string) => {
     setEditingFurniture({
       roomId,
-      furniture: { name: '', description: '', image: '', url: '' }
+      furniture: { name: '', description: '', image: '', url: '' },
+      isEditing: false
+    });
+  };
+
+  const startEditingFurniture = (roomId: string, furniture: FurnitureItem) => {
+    setEditingFurniture({
+      roomId,
+      furniture: { ...furniture },
+      isEditing: true
     });
   };
 
   const saveFurniture = () => {
     if (!editingFurniture || !editingFurniture.furniture.name) return;
 
-    const { roomId, furniture } = editingFurniture;
+    const { roomId, furniture, isEditing } = editingFurniture;
     const room = rooms.find(r => r.id === roomId);
     if (!room) return;
 
@@ -99,17 +108,27 @@ export const RoomEditor: React.FC<RoomEditorProps> = ({ rooms, onChange }) => {
       finalUrl = `https://${finalUrl}`;
     }
 
-    const newFurniture: FurnitureItem = {
-      id: Math.random().toString(36).substr(2, 9),
-      name: furniture.name || '',
-      description: furniture.description,
-      image: furniture.image,
-      url: finalUrl
-    };
-
-    updateRoom(roomId, {
-      furniture: [...(room.furniture || []), newFurniture]
-    });
+    if (isEditing && furniture.id) {
+      // Update existing furniture
+      const updatedFurniture = (room.furniture || []).map(f =>
+        f.id === furniture.id
+          ? { ...f, name: furniture.name || '', description: furniture.description, image: furniture.image, url: finalUrl }
+          : f
+      );
+      updateRoom(roomId, { furniture: updatedFurniture });
+    } else {
+      // Create new furniture
+      const newFurniture: FurnitureItem = {
+        id: Math.random().toString(36).substr(2, 9),
+        name: furniture.name || '',
+        description: furniture.description,
+        image: furniture.image,
+        url: finalUrl
+      };
+      updateRoom(roomId, {
+        furniture: [...(room.furniture || []), newFurniture]
+      });
+    }
 
     setEditingFurniture(null);
   };
@@ -178,7 +197,7 @@ export const RoomEditor: React.FC<RoomEditorProps> = ({ rooms, onChange }) => {
           <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden animate-slideUp">
             <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
               <h3 className="text-lg font-bold text-slate-900 flex items-center">
-                <Armchair size={18} className="mr-2 text-indigo-600" /> 新增家俱細節
+                <Armchair size={18} className="mr-2 text-indigo-600" /> {editingFurniture.isEditing ? '編輯家俱' : '新增家俱細節'}
               </h3>
               <button onClick={() => setEditingFurniture(null)} className="text-slate-400 hover:text-slate-600">
                 <X size={20} />
@@ -246,12 +265,12 @@ export const RoomEditor: React.FC<RoomEditorProps> = ({ rooms, onChange }) => {
             </div>
             <div className="p-6 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
               <button onClick={() => setEditingFurniture(null)} className="px-4 py-2 text-slate-600 font-medium text-sm">取消</button>
-              <button 
+              <button
                 onClick={saveFurniture}
                 disabled={!editingFurniture.furniture.name}
                 className="px-8 py-2 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 disabled:bg-slate-300 transition-colors text-sm"
               >
-                儲存家具
+                {editingFurniture.isEditing ? '更新家具' : '儲存家具'}
               </button>
             </div>
           </div>
@@ -355,12 +374,22 @@ export const RoomEditor: React.FC<RoomEditorProps> = ({ rooms, onChange }) => {
                           </div>
                           <p className="text-[10px] text-slate-500 truncate">{f.description || '無描述'}</p>
                         </div>
-                        <button 
-                          onClick={() => removeFurniture(room.id, f.id)}
-                          className="p-1.5 text-slate-300 hover:text-red-500 transition-colors"
-                        >
-                          <Trash2 size={14} />
-                        </button>
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => startEditingFurniture(room.id, f)}
+                            className="p-1.5 text-slate-300 hover:text-indigo-500 transition-colors"
+                            title="編輯家具"
+                          >
+                            <Edit size={14} />
+                          </button>
+                          <button
+                            onClick={() => removeFurniture(room.id, f.id)}
+                            className="p-1.5 text-slate-300 hover:text-red-500 transition-colors"
+                            title="刪除家具"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
                       </div>
                     ))}
                     {(!room.furniture || room.furniture.length === 0) && (
