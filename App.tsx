@@ -436,7 +436,12 @@ const App: React.FC = () => {
                       <div className="flex justify-between items-start mb-4">
                         <div className="flex items-center">
                           <h4 className="font-bold text-slate-800 text-xl">{room.type}</h4>
-                          <span className={`ml-4 px-2.5 py-1 rounded text-[10px] font-black uppercase tracking-widest ${room.priority === 'High' ? 'bg-red-100 text-red-600' :
+                          {room.floor && (
+                            <span className="ml-3 px-2.5 py-1 rounded text-[10px] font-black uppercase tracking-widest bg-slate-100 text-slate-600">
+                              {room.floor}
+                            </span>
+                          )}
+                          <span className={`ml-3 px-2.5 py-1 rounded text-[10px] font-black uppercase tracking-widest ${room.priority === 'High' ? 'bg-red-100 text-red-600' :
                             room.priority === 'Medium' ? 'bg-orange-100 text-orange-600' : 'bg-blue-100 text-blue-600'
                             }`}>
                             {room.priority} Priority

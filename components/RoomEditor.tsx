@@ -1,6 +1,6 @@
 
 import React, { useState, useRef } from 'react';
-import { RoomRequirement, RoomType, FurnitureItem, RequirementItem } from '../types';
+import { RoomRequirement, RoomType, FurnitureItem, RequirementItem, FLOOR_OPTIONS } from '../types';
 import { Plus, Trash2, Armchair, X, Image as ImageIcon, Upload, FileText, Link as LinkIcon, Edit, Check } from 'lucide-react';
 
 /**
@@ -339,6 +339,18 @@ export const RoomEditor: React.FC<RoomEditorProps> = ({ rooms, onChange }) => {
                   >
                     {Object.values(RoomType).map(t => (
                       <option key={t} value={t}>{t}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="w-full sm:w-1/6">
+                  <label className="block text-xs font-medium text-slate-500 mb-1 uppercase tracking-wider">樓層</label>
+                  <select
+                    value={room.floor || '1F'}
+                    onChange={(e) => updateRoom(room.id, { floor: e.target.value })}
+                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:ring-2 focus:ring-indigo-500 outline-none"
+                  >
+                    {FLOOR_OPTIONS.map(f => (
+                      <option key={f} value={f}>{f}</option>
                     ))}
                   </select>
                 </div>

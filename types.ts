@@ -31,9 +31,12 @@ export interface RequirementItem {
   text: string;
 }
 
+export const FLOOR_OPTIONS = ['B2', 'B1', '1F', '2F', '3F', '4F', '5F', '6F', '7F', '8F', '9F', '10F'] as const;
+
 export interface RoomRequirement {
   id: string;
   type: RoomType;
+  floor?: string;
   description: string;
   requirements?: RequirementItem[];
   priority: 'High' | 'Medium' | 'Low';
