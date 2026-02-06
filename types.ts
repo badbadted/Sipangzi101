@@ -26,10 +26,16 @@ export interface FurnitureItem {
   url?: string; // product link or reference url
 }
 
+export interface RequirementItem {
+  id: string;
+  text: string;
+}
+
 export interface RoomRequirement {
   id: string;
   type: RoomType;
   description: string;
+  requirements?: RequirementItem[];
   priority: 'High' | 'Medium' | 'Low';
   furniture?: FurnitureItem[];
   images?: string[];

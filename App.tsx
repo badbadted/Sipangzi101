@@ -443,7 +443,21 @@ const App: React.FC = () => {
                           </span>
                         </div>
                       </div>
-                      <p className="text-slate-600 leading-relaxed mb-8 text-lg">{room.description}</p>
+                      {/* Requirements list */}
+                      {room.requirements && room.requirements.length > 0 ? (
+                        <ul className="space-y-2 mb-8">
+                          {room.requirements.map(req => (
+                            <li key={req.id} className="flex items-start gap-3 text-slate-600 text-lg">
+                              <span className="w-2 h-2 bg-indigo-400 rounded-full mt-2.5 shrink-0"></span>
+                              <span className="leading-relaxed">{req.text}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : room.description ? (
+                        <p className="text-slate-600 leading-relaxed mb-8 text-lg">{room.description}</p>
+                      ) : (
+                        <p className="text-slate-400 italic mb-8">尚未填寫需求</p>
+                      )}
 
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                         {/* Furniture Section */}

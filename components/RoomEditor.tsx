@@ -1,7 +1,7 @@
 
 import React, { useState, useRef } from 'react';
-import { RoomRequirement, RoomType, FurnitureItem } from '../types';
-import { Plus, Trash2, Armchair, X, Image as ImageIcon, Upload, FileText, Link as LinkIcon, Edit } from 'lucide-react';
+import { RoomRequirement, RoomType, FurnitureItem, RequirementItem } from '../types';
+import { Plus, Trash2, Armchair, X, Image as ImageIcon, Upload, FileText, Link as LinkIcon, Edit, Check } from 'lucide-react';
 
 /**
  * Compress image to reduce size for Firestore storage
@@ -56,6 +56,8 @@ interface RoomEditorProps {
 
 export const RoomEditor: React.FC<RoomEditorProps> = ({ rooms, onChange }) => {
   const [editingFurniture, setEditingFurniture] = useState<{ roomId: string, furniture: Partial<FurnitureItem>, isEditing: boolean } | null>(null);
+  const [editingRequirement, setEditingRequirement] = useState<{ roomId: string, reqId: string, text: string } | null>(null);
+  const [newRequirementText, setNewRequirementText] = useState<{ [roomId: string]: string }>({});
   const fileInputRefs = useRef<{ [roomId: string]: HTMLInputElement | null }>({});
   const furnitureImageRef = useRef<HTMLInputElement | null>(null);
 
@@ -77,6 +79,37 @@ export const RoomEditor: React.FC<RoomEditorProps> = ({ rooms, onChange }) => {
 
   const updateRoom = (id: string, updates: Partial<RoomRequirement>) => {
     onChange(rooms.map(r => r.id === id ? { ...r, ...updates } : r));
+  };
+
+  const addRequirement = (roomId: string) => {
+    const text = newRequirementText[roomId]?.trim();
+    if (!text) return;
+    const room = rooms.find(r => r.id === roomId);
+    if (!room) return;
+    const newReq: RequirementItem = {
+      id: Math.random().toString(36).substr(2, 9),
+      text
+    };
+    updateRoom(roomId, { requirements: [...(room.requirements || []), newReq] });
+    setNewRequirementText({ ...newRequirementText, [roomId]: '' });
+  };
+
+  const removeRequirement = (roomId: string, reqId: string) => {
+    const room = rooms.find(r => r.id === roomId);
+    if (!room) return;
+    updateRoom(roomId, { requirements: (room.requirements || []).filter(r => r.id !== reqId) });
+  };
+
+  const saveRequirementEdit = () => {
+    if (!editingRequirement) return;
+    const { roomId, reqId, text } = editingRequirement;
+    if (!text.trim()) return;
+    const room = rooms.find(r => r.id === roomId);
+    if (!room) return;
+    updateRoom(roomId, {
+      requirements: (room.requirements || []).map(r => r.id === reqId ? { ...r, text: text.trim() } : r)
+    });
+    setEditingRequirement(null);
   };
 
   const startAddingFurniture = (roomId: string) => {
@@ -321,23 +354,80 @@ export const RoomEditor: React.FC<RoomEditorProps> = ({ rooms, onChange }) => {
                     <option value="Low">低 (視預算調整)</option>
                   </select>
                 </div>
-                <div className="flex-1">
-                  <label className="block text-xs font-medium text-slate-500 mb-1 uppercase tracking-wider">詳細需求描述</label>
-                  <textarea
-                    value={room.description}
-                    onChange={(e) => updateRoom(room.id, { description: e.target.value })}
-                    placeholder="例如：需要開放式廚房、大量收納、充足採光..."
-                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 h-20 focus:ring-2 focus:ring-indigo-500 outline-none resize-none"
-                  />
-                </div>
                 <div className="flex items-start pt-6">
-                  {/* Fixed: Referencing 'room.id' correctly within the map loop */}
                   <button
                     onClick={() => removeRoom(room.id)}
                     className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
                     title="刪除空間"
                   >
                     <Trash2 size={20} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Multi-item Requirements Section */}
+              <div className="space-y-3">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center">
+                  <FileText size={14} className="mr-1 text-indigo-500" /> 需求項目
+                </label>
+                <div className="space-y-2">
+                  {(room.requirements || []).map((req) => (
+                    <div key={req.id} className="flex items-center gap-2 group">
+                      {editingRequirement?.reqId === req.id ? (
+                        <div className="flex-1 flex items-center gap-2">
+                          <input
+                            type="text"
+                            className="flex-1 p-2 bg-white border border-indigo-300 rounded-lg text-slate-900 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                            value={editingRequirement.text}
+                            onChange={(e) => setEditingRequirement({ ...editingRequirement, text: e.target.value })}
+                            onKeyDown={(e) => { if (e.key === 'Enter') saveRequirementEdit(); if (e.key === 'Escape') setEditingRequirement(null); }}
+                            autoFocus
+                          />
+                          <button onClick={saveRequirementEdit} className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors" title="儲存">
+                            <Check size={16} />
+                          </button>
+                          <button onClick={() => setEditingRequirement(null)} className="p-1.5 text-slate-400 hover:bg-slate-100 rounded-lg transition-colors" title="取消">
+                            <X size={16} />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex-1 flex items-center gap-2 p-2 bg-slate-50 rounded-lg border border-slate-100">
+                          <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full shrink-0"></span>
+                          <span className="flex-1 text-sm text-slate-700">{req.text}</span>
+                          <button
+                            onClick={() => setEditingRequirement({ roomId: room.id, reqId: req.id, text: req.text })}
+                            className="p-1 text-slate-300 hover:text-indigo-500 transition-colors opacity-0 group-hover:opacity-100"
+                            title="編輯需求"
+                          >
+                            <Edit size={14} />
+                          </button>
+                          <button
+                            onClick={() => removeRequirement(room.id, req.id)}
+                            className="p-1 text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                            title="刪除需求"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    placeholder="輸入新需求，例如：需要開放式廚房..."
+                    className="flex-1 p-2 bg-white border border-slate-200 rounded-lg text-slate-900 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                    value={newRequirementText[room.id] || ''}
+                    onChange={(e) => setNewRequirementText({ ...newRequirementText, [room.id]: e.target.value })}
+                    onKeyDown={(e) => { if (e.key === 'Enter') addRequirement(room.id); }}
+                  />
+                  <button
+                    onClick={() => addRequirement(room.id)}
+                    disabled={!newRequirementText[room.id]?.trim()}
+                    className="px-3 py-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-colors text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <Plus size={16} />
                   </button>
                 </div>
               </div>
