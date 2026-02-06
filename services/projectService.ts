@@ -18,6 +18,30 @@ import { Project } from '../types';
 const PROJECTS_COLLECTION = 'projects';
 
 /**
+ * Remove undefined values from object recursively
+ * Firestore doesn't accept undefined values
+ */
+const removeUndefined = (obj: any): any => {
+    if (obj === null || obj === undefined) {
+        return null;
+    }
+    if (Array.isArray(obj)) {
+        return obj.map(item => removeUndefined(item));
+    }
+    if (typeof obj === 'object') {
+        const cleaned: any = {};
+        for (const key of Object.keys(obj)) {
+            const value = obj[key];
+            if (value !== undefined) {
+                cleaned[key] = removeUndefined(value);
+            }
+        }
+        return cleaned;
+    }
+    return obj;
+};
+
+/**
  * Convert Firestore document to Project type
  */
 const docToProject = (doc: any): Project => {
@@ -31,10 +55,11 @@ const docToProject = (doc: any): Project => {
 
 /**
  * Convert Project to Firestore document data
+ * Removes undefined values to prevent Firestore errors
  */
 const projectToDoc = (project: Partial<Project>) => {
     const { id, createdAt, ...rest } = project;
-    return rest;
+    return removeUndefined(rest);
 };
 
 /**
