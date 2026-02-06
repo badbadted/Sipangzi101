@@ -18,27 +18,65 @@ import { Project } from '../types';
 const PROJECTS_COLLECTION = 'projects';
 
 /**
- * Remove undefined values from object recursively
- * Firestore doesn't accept undefined values
+ * Sanitize data for Firestore
+ * - Removes undefined values
+ * - Converts undefined to empty string for optional string fields
+ * - Ensures arrays are clean
  */
-const removeUndefined = (obj: any): any => {
-    if (obj === null || obj === undefined) {
+const sanitizeForFirestore = (obj: any): any => {
+    // Handle null/undefined
+    if (obj === undefined) {
         return null;
     }
-    if (Array.isArray(obj)) {
-        return obj.map(item => removeUndefined(item));
+    if (obj === null) {
+        return null;
     }
+
+    // Handle arrays
+    if (Array.isArray(obj)) {
+        return obj.map(item => sanitizeForFirestore(item)).filter(item => item !== null);
+    }
+
+    // Handle objects
     if (typeof obj === 'object') {
         const cleaned: any = {};
         for (const key of Object.keys(obj)) {
             const value = obj[key];
-            if (value !== undefined) {
-                cleaned[key] = removeUndefined(value);
+            if (value === undefined) {
+                // Skip undefined values entirely
+                continue;
+            }
+            const sanitized = sanitizeForFirestore(value);
+            if (sanitized !== null || key === 'description' || key === 'image' || key === 'url') {
+                // Keep null only for optional string fields, otherwise skip
+                cleaned[key] = sanitized === null ? '' : sanitized;
             }
         }
         return cleaned;
     }
+
+    // Handle primitives (string, number, boolean)
     return obj;
+};
+
+/**
+ * Deep clone and sanitize object using JSON parse/stringify
+ * This ensures the object is fully serializable
+ */
+const cleanForFirestore = (obj: any): any => {
+    try {
+        // First, use JSON to remove any non-serializable data
+        const jsonStr = JSON.stringify(obj, (key, value) => {
+            if (value === undefined) return null;
+            return value;
+        });
+        const parsed = JSON.parse(jsonStr);
+        // Then sanitize for Firestore
+        return sanitizeForFirestore(parsed);
+    } catch (e) {
+        console.error('Error cleaning data for Firestore:', e);
+        return sanitizeForFirestore(obj);
+    }
 };
 
 /**
@@ -55,11 +93,11 @@ const docToProject = (doc: any): Project => {
 
 /**
  * Convert Project to Firestore document data
- * Removes undefined values to prevent Firestore errors
+ * Sanitizes data to prevent Firestore errors
  */
 const projectToDoc = (project: Partial<Project>) => {
     const { id, createdAt, ...rest } = project;
-    return removeUndefined(rest);
+    return cleanForFirestore(rest);
 };
 
 /**
