@@ -358,7 +358,7 @@ export const RoomEditor: React.FC<RoomEditorProps> = ({ rooms, onChange }) => {
           <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden animate-slideUp">
             <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
               <h3 className="text-lg font-bold text-slate-900 flex items-center">
-                <Armchair size={18} className="mr-2 text-indigo-600" /> {editingFurniture.isEditing ? '編輯家俱' : '新增家俱細節'}
+                <Armchair size={18} className="mr-2 text-indigo-600" /> {editingFurniture.isEditing ? '編輯家電(俱)' : '新增家電(俱)細節'}
               </h3>
               <button onClick={() => setEditingFurniture(null)} className="text-slate-400 hover:text-slate-600">
                 <X size={20} />
@@ -375,7 +375,7 @@ export const RoomEditor: React.FC<RoomEditorProps> = ({ rooms, onChange }) => {
                   ) : (
                     <>
                       <Upload size={24} className="text-slate-300 group-hover:text-indigo-500 mb-1" />
-                      <span className="text-xs text-slate-400">家俱圖片</span>
+                      <span className="text-xs text-slate-400">家電(俱)圖片</span>
                     </>
                   )}
                   <input
@@ -388,7 +388,7 @@ export const RoomEditor: React.FC<RoomEditorProps> = ({ rooms, onChange }) => {
                 </div>
                 <div className="flex-1 space-y-3">
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-400 mb-1 uppercase tracking-wider">家俱名稱</label>
+                    <label className="block text-[10px] font-bold text-slate-400 mb-1 uppercase tracking-wider">家電(俱)名稱</label>
                     <input
                       type="text"
                       placeholder="例如：北歐風布質沙發"
@@ -691,7 +691,7 @@ export const RoomEditor: React.FC<RoomEditorProps> = ({ rooms, onChange }) => {
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center">
-                    <Armchair size={14} className="mr-1 text-indigo-500" /> 家俱清單
+                    <Armchair size={14} className="mr-1 text-indigo-500" /> 家電(俱)清單
                   </label>
                   <button
                     onClick={() => startAddingFurniture(activeRoom.id)}
@@ -973,7 +973,7 @@ export const RoomEditor: React.FC<RoomEditorProps> = ({ rooms, onChange }) => {
                           {furCount > 0 && (
                             <div>
                               <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1">
-                                <Armchair size={11} /> 家俱清單
+                                <Armchair size={11} /> 家電(俱)清單
                               </h4>
                               <ul className="space-y-1">
                                 {(room.furniture || []).map(f => (
