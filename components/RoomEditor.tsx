@@ -150,7 +150,7 @@ export const RoomEditor: React.FC<RoomEditorProps> = ({ rooms, onChange }) => {
       // Update existing furniture
       const updatedFurniture = (room.furniture || []).map(f =>
         f.id === furniture.id
-          ? { ...f, name: furniture.name || '', description: furniture.description, image: furniture.image, url: finalUrl }
+          ? { ...f, name: furniture.name || '', description: furniture.description, image: furniture.image, url: finalUrl, optional: furniture.optional }
           : f
       );
       updateRoom(roomId, { furniture: updatedFurniture });
@@ -161,7 +161,8 @@ export const RoomEditor: React.FC<RoomEditorProps> = ({ rooms, onChange }) => {
         name: furniture.name || '',
         description: furniture.description,
         image: furniture.image,
-        url: finalUrl
+        url: finalUrl,
+        optional: furniture.optional
       };
       updateRoom(roomId, {
         furniture: [...(room.furniture || []), newFurniture]
@@ -226,7 +227,7 @@ export const RoomEditor: React.FC<RoomEditorProps> = ({ rooms, onChange }) => {
     if (isEditing && decoration.id) {
       const updatedDecorations = (room.decorations || []).map(d =>
         d.id === decoration.id
-          ? { ...d, name: decoration.name || '', description: decoration.description, image: decoration.image, url: finalUrl }
+          ? { ...d, name: decoration.name || '', description: decoration.description, image: decoration.image, url: finalUrl, optional: decoration.optional }
           : d
       );
       updateRoom(roomId, { decorations: updatedDecorations });
@@ -236,7 +237,8 @@ export const RoomEditor: React.FC<RoomEditorProps> = ({ rooms, onChange }) => {
         name: decoration.name || '',
         description: decoration.description,
         image: decoration.image,
-        url: finalUrl
+        url: finalUrl,
+        optional: decoration.optional
       };
       updateRoom(roomId, {
         decorations: [...(room.decorations || []), newDecoration]
@@ -322,6 +324,30 @@ export const RoomEditor: React.FC<RoomEditorProps> = ({ rooms, onChange }) => {
     }
   };
 
+  const floorColor = (floor: string) => {
+    switch (floor) {
+      case 'B2':
+      case 'B1':
+        return { border: 'border-l-slate-400', badge: 'bg-slate-100 text-slate-600' };
+      case '1F':
+        return { border: 'border-l-blue-400', badge: 'bg-blue-100 text-blue-600' };
+      case '2F':
+        return { border: 'border-l-emerald-400', badge: 'bg-emerald-100 text-emerald-600' };
+      case '3F':
+        return { border: 'border-l-violet-400', badge: 'bg-violet-100 text-violet-600' };
+      case '4F':
+        return { border: 'border-l-orange-400', badge: 'bg-orange-100 text-orange-600' };
+      case '5F':
+        return { border: 'border-l-pink-400', badge: 'bg-pink-100 text-pink-600' };
+      case '6F':
+        return { border: 'border-l-cyan-400', badge: 'bg-cyan-100 text-cyan-600' };
+      case '7F':
+        return { border: 'border-l-amber-400', badge: 'bg-amber-100 text-amber-600' };
+      default:
+        return { border: 'border-l-lime-400', badge: 'bg-lime-100 text-lime-600' };
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Furniture Modal Overlay */}
@@ -395,6 +421,16 @@ export const RoomEditor: React.FC<RoomEditorProps> = ({ rooms, onChange }) => {
                   onChange={e => setEditingFurniture({...editingFurniture, furniture: {...editingFurniture.furniture, description: e.target.value}})}
                 />
               </div>
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={editingFurniture.furniture.optional || false}
+                  onChange={e => setEditingFurniture({...editingFurniture, furniture: {...editingFurniture.furniture, optional: e.target.checked}})}
+                  className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                />
+                <span className="text-sm text-slate-600">非必要項目</span>
+                <span className="text-[10px] text-slate-400">（視預算決定是否採購）</span>
+              </label>
             </div>
             <div className="p-6 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
               <button onClick={() => setEditingFurniture(null)} className="px-4 py-2 text-slate-600 font-medium text-sm">取消</button>
@@ -481,6 +517,16 @@ export const RoomEditor: React.FC<RoomEditorProps> = ({ rooms, onChange }) => {
                   onChange={e => setEditingDecoration({...editingDecoration, decoration: {...editingDecoration.decoration, description: e.target.value}})}
                 />
               </div>
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={editingDecoration.decoration.optional || false}
+                  onChange={e => setEditingDecoration({...editingDecoration, decoration: {...editingDecoration.decoration, optional: e.target.checked}})}
+                  className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                />
+                <span className="text-sm text-slate-600">非必要項目</span>
+                <span className="text-[10px] text-slate-400">（視預算決定是否施作）</span>
+              </label>
             </div>
             <div className="p-6 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
               <button onClick={() => setEditingDecoration(null)} className="px-4 py-2 text-slate-600 font-medium text-sm">取消</button>
@@ -667,6 +713,7 @@ export const RoomEditor: React.FC<RoomEditorProps> = ({ rooms, onChange }) => {
                         <div className="flex items-center gap-1.5">
                           <h4 className="text-sm font-bold text-slate-800 truncate">{f.name}</h4>
                           {f.url && <LinkIcon size={10} className="text-indigo-400" />}
+                          {f.optional && <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-500 shrink-0">非必要</span>}
                         </div>
                         <p className="text-[10px] text-slate-500 truncate">{f.description || '無描述'}</p>
                       </div>
@@ -724,6 +771,7 @@ export const RoomEditor: React.FC<RoomEditorProps> = ({ rooms, onChange }) => {
                         <div className="flex items-center gap-1.5">
                           <h4 className="text-sm font-bold text-slate-800 truncate">{d.name}</h4>
                           {d.url && <LinkIcon size={10} className="text-indigo-400" />}
+                          {d.optional && <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-500 shrink-0">非必要</span>}
                         </div>
                         <p className="text-[10px] text-slate-500 truncate">{d.description || '無描述'}</p>
                       </div>
@@ -800,64 +848,84 @@ export const RoomEditor: React.FC<RoomEditorProps> = ({ rooms, onChange }) => {
         </div>
       ) : (
         /* ===== Room Overview Mode ===== */
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {rooms.map((room) => {
-            const reqCount = (room.requirements || []).length;
-            const furCount = (room.furniture || []).length;
-            const decCount = (room.decorations || []).length;
-            const imgCount = (room.images || []).length;
-            return (
-              <div
-                key={room.id}
-                className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all cursor-pointer group"
-                onClick={() => setActiveRoomId(room.id)}
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <h3 className="text-base font-bold text-slate-800">{room.type}</h3>
-                    <span className="text-xs text-slate-400">{room.floor || '1F'}</span>
+        <div className="space-y-2">
+          {(() => {
+            const sortedRooms = [...rooms].sort((a, b) => {
+              const ai = FLOOR_OPTIONS.indexOf((a.floor || '1F') as any);
+              const bi = FLOOR_OPTIONS.indexOf((b.floor || '1F') as any);
+              return ai - bi;
+            });
+            let lastFloor = '';
+            return sortedRooms.map((room) => {
+              const reqCount = (room.requirements || []).length;
+              const furCount = (room.furniture || []).length;
+              const decCount = (room.decorations || []).length;
+              const imgCount = (room.images || []).length;
+              const floor = room.floor || '1F';
+              const colors = floorColor(floor);
+              const showHeader = floor !== lastFloor;
+              lastFloor = floor;
+              return (
+                <React.Fragment key={room.id}>
+                  {showHeader && (
+                    <div className="flex items-center gap-3 pt-3 pb-1">
+                      <div className="flex-1 h-px bg-slate-200" />
+                      <span className="text-xs font-bold text-slate-400 tracking-wider">{floor}</span>
+                      <div className="flex-1 h-px bg-slate-200" />
+                    </div>
+                  )}
+                  <div
+                    className={`bg-white border border-slate-200 border-l-4 ${colors.border} rounded-xl p-4 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all cursor-pointer group`}
+                    onClick={() => setActiveRoomId(room.id)}
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-base font-bold text-slate-800">{room.type}</h3>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${colors.badge}`}>{floor}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${priorityColor(room.priority)}`}>
+                          {priorityLabel(room.priority)}
+                        </span>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); removeRoom(room.id); }}
+                          className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                          title="刪除空間"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 text-xs text-slate-500">
+                      {reqCount > 0 && (
+                        <span className="flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded-full">
+                          <FileText size={12} /> {reqCount} 需求
+                        </span>
+                      )}
+                      {furCount > 0 && (
+                        <span className="flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded-full">
+                          <Armchair size={12} /> {furCount} 家具
+                        </span>
+                      )}
+                      {decCount > 0 && (
+                        <span className="flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded-full">
+                          <Paintbrush size={12} /> {decCount} 裝潢
+                        </span>
+                      )}
+                      {imgCount > 0 && (
+                        <span className="flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded-full">
+                          <ImageIcon size={12} /> {imgCount} 圖片
+                        </span>
+                      )}
+                      {reqCount === 0 && furCount === 0 && decCount === 0 && imgCount === 0 && (
+                        <span className="text-slate-400 italic">尚未填寫</span>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${priorityColor(room.priority)}`}>
-                      {priorityLabel(room.priority)}
-                    </span>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); removeRoom(room.id); }}
-                      className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
-                      title="刪除空間"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 text-xs text-slate-500">
-                  {reqCount > 0 && (
-                    <span className="flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded-full">
-                      <FileText size={12} /> {reqCount} 需求
-                    </span>
-                  )}
-                  {furCount > 0 && (
-                    <span className="flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded-full">
-                      <Armchair size={12} /> {furCount} 家具
-                    </span>
-                  )}
-                  {decCount > 0 && (
-                    <span className="flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded-full">
-                      <Paintbrush size={12} /> {decCount} 裝潢
-                    </span>
-                  )}
-                  {imgCount > 0 && (
-                    <span className="flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded-full">
-                      <ImageIcon size={12} /> {imgCount} 圖片
-                    </span>
-                  )}
-                  {reqCount === 0 && furCount === 0 && decCount === 0 && imgCount === 0 && (
-                    <span className="text-slate-400 italic">尚未填寫</span>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+                </React.Fragment>
+              );
+            });
+          })()}
         </div>
       )}
     </div>

@@ -24,6 +24,7 @@ export interface FurnitureItem {
   description?: string;
   image?: string; // base64 encoded image
   url?: string; // product link or reference url
+  optional?: boolean;
 }
 
 export interface DecorationItem {
@@ -32,6 +33,7 @@ export interface DecorationItem {
   description?: string;
   image?: string;
   url?: string;
+  optional?: boolean;
 }
 
 export interface RequirementItem {
