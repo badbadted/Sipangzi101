@@ -1,7 +1,7 @@
 
 import React, { useState, useRef } from 'react';
 import { RoomRequirement, RoomType, FurnitureItem, DecorationItem, RequirementItem, FLOOR_OPTIONS } from '../types';
-import { Plus, Trash2, Armchair, Paintbrush, X, Image as ImageIcon, Upload, FileText, Link as LinkIcon, Edit, Check, ChevronLeft } from 'lucide-react';
+import { Plus, Trash2, Armchair, Paintbrush, X, Image as ImageIcon, Upload, FileText, Link as LinkIcon, Edit, Check, ChevronLeft, ChevronDown, ChevronUp } from 'lucide-react';
 
 /**
  * Compress image to reduce size for Firestore storage
@@ -56,6 +56,7 @@ interface RoomEditorProps {
 
 export const RoomEditor: React.FC<RoomEditorProps> = ({ rooms, onChange }) => {
   const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
+  const [expandedRoomIds, setExpandedRoomIds] = useState<Set<string>>(new Set());
   const [editingFurniture, setEditingFurniture] = useState<{ roomId: string, furniture: Partial<FurnitureItem>, isEditing: boolean } | null>(null);
   const [editingDecoration, setEditingDecoration] = useState<{ roomId: string, decoration: Partial<DecorationItem>, isEditing: boolean } | null>(null);
   const [editingRequirement, setEditingRequirement] = useState<{ roomId: string, reqId: string, text: string } | null>(null);
@@ -875,52 +876,156 @@ export const RoomEditor: React.FC<RoomEditorProps> = ({ rooms, onChange }) => {
                     </div>
                   )}
                   <div
-                    className={`bg-white border border-slate-200 border-l-4 ${colors.border} rounded-xl p-4 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all cursor-pointer group`}
-                    onClick={() => setActiveRoomId(room.id)}
+                    className={`bg-white border border-slate-200 border-l-4 ${colors.border} rounded-xl shadow-sm hover:shadow-md transition-all group`}
                   >
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-base font-bold text-slate-800">{room.type}</h3>
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${colors.badge}`}>{floor}</span>
+                    <div className="p-4">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-base font-bold text-slate-800">{room.type}</h3>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${colors.badge}`}>{floor}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${priorityColor(room.priority)}`}>
+                            {priorityLabel(room.priority)}
+                          </span>
+                          <button
+                            onClick={() => setActiveRoomId(room.id)}
+                            className="px-2.5 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors"
+                            title="編輯空間"
+                          >
+                            <Edit size={14} />
+                          </button>
+                          <button
+                            onClick={() => {
+                              setExpandedRoomIds(prev => {
+                                const next = new Set(prev);
+                                if (next.has(room.id)) {
+                                  next.delete(room.id);
+                                } else {
+                                  next.add(room.id);
+                                }
+                                return next;
+                              });
+                            }}
+                            className="p-1.5 text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-all"
+                            title={expandedRoomIds.has(room.id) ? '收合' : '展開'}
+                          >
+                            {expandedRoomIds.has(room.id) ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                          </button>
+                          <button
+                            onClick={() => removeRoom(room.id)}
+                            className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                            title="刪除空間"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${priorityColor(room.priority)}`}>
-                          {priorityLabel(room.priority)}
-                        </span>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); removeRoom(room.id); }}
-                          className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
-                          title="刪除空間"
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                      <div className="flex items-center gap-3 text-xs text-slate-500">
+                        {reqCount > 0 && (
+                          <span className="flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded-full">
+                            <FileText size={12} /> {reqCount} 需求
+                          </span>
+                        )}
+                        {furCount > 0 && (
+                          <span className="flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded-full">
+                            <Armchair size={12} /> {furCount} 家具
+                          </span>
+                        )}
+                        {decCount > 0 && (
+                          <span className="flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded-full">
+                            <Paintbrush size={12} /> {decCount} 裝潢
+                          </span>
+                        )}
+                        {imgCount > 0 && (
+                          <span className="flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded-full">
+                            <ImageIcon size={12} /> {imgCount} 圖片
+                          </span>
+                        )}
+                        {reqCount === 0 && furCount === 0 && decCount === 0 && imgCount === 0 && (
+                          <span className="text-slate-400 italic">尚未填寫</span>
+                        )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 text-xs text-slate-500">
-                      {reqCount > 0 && (
-                        <span className="flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded-full">
-                          <FileText size={12} /> {reqCount} 需求
-                        </span>
-                      )}
-                      {furCount > 0 && (
-                        <span className="flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded-full">
-                          <Armchair size={12} /> {furCount} 家具
-                        </span>
-                      )}
-                      {decCount > 0 && (
-                        <span className="flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded-full">
-                          <Paintbrush size={12} /> {decCount} 裝潢
-                        </span>
-                      )}
-                      {imgCount > 0 && (
-                        <span className="flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded-full">
-                          <ImageIcon size={12} /> {imgCount} 圖片
-                        </span>
-                      )}
-                      {reqCount === 0 && furCount === 0 && decCount === 0 && imgCount === 0 && (
-                        <span className="text-slate-400 italic">尚未填寫</span>
-                      )}
-                    </div>
+
+                    {/* Expanded Detail Section */}
+                    {expandedRoomIds.has(room.id) && (reqCount > 0 || furCount > 0 || decCount > 0 || imgCount > 0) && (
+                      <div className="px-4 pb-4 pt-0 space-y-3">
+                        <div className="border-t border-slate-100 pt-3" />
+
+                        {reqCount > 0 && (
+                          <div>
+                            <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                              <FileText size={11} /> 需求項目
+                            </h4>
+                            <ul className="space-y-1">
+                              {(room.requirements || []).map(req => (
+                                <li key={req.id} className="flex items-start gap-2 text-sm text-slate-600">
+                                  <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full mt-1.5 shrink-0" />
+                                  {req.text}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {furCount > 0 && (
+                          <div>
+                            <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                              <Armchair size={11} /> 家俱清單
+                            </h4>
+                            <ul className="space-y-1">
+                              {(room.furniture || []).map(f => (
+                                <li key={f.id} className="flex items-center gap-2 text-sm text-slate-600">
+                                  <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full shrink-0" />
+                                  <span>{f.name}</span>
+                                  {f.optional && (
+                                    <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-500">非必要</span>
+                                  )}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {decCount > 0 && (
+                          <div>
+                            <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                              <Paintbrush size={11} /> 裝潢清單
+                            </h4>
+                            <ul className="space-y-1">
+                              {(room.decorations || []).map(d => (
+                                <li key={d.id} className="flex items-center gap-2 text-sm text-slate-600">
+                                  <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full shrink-0" />
+                                  <span>{d.name}</span>
+                                  {d.optional && (
+                                    <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-500">非必要</span>
+                                  )}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {imgCount > 0 && (
+                          <div>
+                            <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                              <ImageIcon size={11} /> 參考圖片
+                            </h4>
+                            <div className="flex flex-wrap gap-2">
+                              {(room.images || []).map((img, idx) => (
+                                <img
+                                  key={idx}
+                                  src={img}
+                                  className="w-16 h-16 object-cover rounded-lg border border-slate-200"
+                                  alt="參考圖片"
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </React.Fragment>
               );
