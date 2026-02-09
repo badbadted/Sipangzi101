@@ -56,7 +56,7 @@ interface RoomEditorProps {
 
 export const RoomEditor: React.FC<RoomEditorProps> = ({ rooms, onChange }) => {
   const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
-  const [expandedRoomIds, setExpandedRoomIds] = useState<Set<string>>(new Set());
+  const [expandedRoomIds, setExpandedRoomIds] = useState<Set<string>>(() => new Set(rooms.map(r => r.id)));
   const [editingFurniture, setEditingFurniture] = useState<{ roomId: string, furniture: Partial<FurnitureItem>, isEditing: boolean } | null>(null);
   const [editingDecoration, setEditingDecoration] = useState<{ roomId: string, decoration: Partial<DecorationItem>, isEditing: boolean } | null>(null);
   const [editingRequirement, setEditingRequirement] = useState<{ roomId: string, reqId: string, text: string } | null>(null);
@@ -75,6 +75,7 @@ export const RoomEditor: React.FC<RoomEditorProps> = ({ rooms, onChange }) => {
       images: [],
     };
     onChange([...rooms, newRoom]);
+    setExpandedRoomIds(prev => new Set([...prev, newRoom.id]));
     setActiveRoomId(newRoom.id);
   };
 

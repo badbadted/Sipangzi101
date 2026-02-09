@@ -1,8 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
-import { Project, ProjectStatus, RoomType, FurnitureItem, DecorationItem } from './types';
+import { Project, ProjectStatus, RoomType } from './types';
 import { ProjectCard } from './components/ProjectCard';
 import { RoomEditor } from './components/RoomEditor';
+import { BriefingView } from './components/BriefingView';
 import { subscribeToProjects, createProject, updateProject, deleteProject } from './services/projectService';
 import {
   Plus,
@@ -11,12 +12,7 @@ import {
   Layout,
   Trash2,
   AlertTriangle,
-  Armchair,
-  Paintbrush,
-  Image as ImageIcon,
   X,
-  FileText,
-  ExternalLink,
   Edit
 } from 'lucide-react';
 
@@ -426,156 +422,10 @@ const App: React.FC = () => {
                 </div>
               </div>
 
-              <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                  <h3 className="font-bold text-slate-800 text-lg">各空間需求清單</h3>
-                  <span className="text-sm text-slate-500 font-medium">{selectedProject?.rooms.length} 個標記空間</span>
-                </div>
-                <div className="divide-y divide-slate-100">
-                  {selectedProject?.rooms.map(room => (
-                    <div key={room.id} className="p-8 hover:bg-slate-50/50 transition-colors">
-                      <div className="flex justify-between items-start mb-4">
-                        <div className="flex items-center">
-                          <h4 className="font-bold text-slate-800 text-xl">{room.type}</h4>
-                          {room.floor && (
-                            <span className="ml-3 px-2.5 py-1 rounded text-[10px] font-black uppercase tracking-widest bg-slate-100 text-slate-600">
-                              {room.floor}
-                            </span>
-                          )}
-                          <span className={`ml-3 px-2.5 py-1 rounded text-[10px] font-black uppercase tracking-widest ${room.priority === 'High' ? 'bg-red-100 text-red-600' :
-                            room.priority === 'Medium' ? 'bg-orange-100 text-orange-600' : 'bg-blue-100 text-blue-600'
-                            }`}>
-                            {room.priority} Priority
-                          </span>
-                        </div>
-                      </div>
-                      {/* Requirements list */}
-                      {room.requirements && room.requirements.length > 0 ? (
-                        <ul className="space-y-2 mb-8">
-                          {room.requirements.map(req => (
-                            <li key={req.id} className="flex items-start gap-3 text-slate-600 text-lg">
-                              <span className="w-2 h-2 bg-indigo-400 rounded-full mt-2.5 shrink-0"></span>
-                              <span className="leading-relaxed">{req.text}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      ) : room.description ? (
-                        <p className="text-slate-600 leading-relaxed mb-8 text-lg">{room.description}</p>
-                      ) : (
-                        <p className="text-slate-400 italic mb-8">尚未填寫需求</p>
-                      )}
-
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                        {/* Furniture Section */}
-                        {room.furniture && room.furniture.length > 0 && (
-                          <div className="space-y-4">
-                            <div className="w-full text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center">
-                              <Armchair size={14} className="mr-2 text-indigo-400" /> 預計配置家俱：
-                            </div>
-                            <div className="grid grid-cols-1 gap-3">
-                              {room.furniture.map(f => (
-                                <div key={f.id} className="flex gap-4 p-3 bg-white rounded-xl border border-slate-100 shadow-sm relative group">
-                                  <div className="w-20 h-20 bg-slate-50 rounded-lg overflow-hidden shrink-0 border border-slate-100 flex items-center justify-center">
-                                    {f.image ? (
-                                      <img
-                                        src={f.image}
-                                        className="w-full h-full object-cover cursor-zoom-in"
-                                        onClick={() => setPreviewImage(f.image!)}
-                                      />
-                                    ) : (
-                                      <Armchair className="text-slate-200" size={24} />
-                                    )}
-                                  </div>
-                                  <div className="flex-1 min-w-0 py-1 pr-8">
-                                    <div className="flex items-center gap-2">
-                                      <h5 className="font-bold text-slate-800 truncate">{f.name}</h5>
-                                      {f.url && (
-                                        <a
-                                          href={f.url}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="p-1.5 text-indigo-500 hover:bg-indigo-50 rounded-lg transition-colors"
-                                          title="查看商品連結"
-                                        >
-                                          <ExternalLink size={14} />
-                                        </a>
-                                      )}
-                                    </div>
-                                    <p className="text-sm text-slate-500 leading-snug mt-1 line-clamp-2">{f.description || '無詳細描述'}</p>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Decoration Section */}
-                        {room.decorations && room.decorations.length > 0 && (
-                          <div className="space-y-4">
-                            <div className="w-full text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center">
-                              <Paintbrush size={14} className="mr-2 text-indigo-400" /> 預計裝潢項目：
-                            </div>
-                            <div className="grid grid-cols-1 gap-3">
-                              {room.decorations.map(d => (
-                                <div key={d.id} className="flex gap-4 p-3 bg-white rounded-xl border border-slate-100 shadow-sm relative group">
-                                  <div className="w-20 h-20 bg-slate-50 rounded-lg overflow-hidden shrink-0 border border-slate-100 flex items-center justify-center">
-                                    {d.image ? (
-                                      <img
-                                        src={d.image}
-                                        className="w-full h-full object-cover cursor-zoom-in"
-                                        onClick={() => setPreviewImage(d.image!)}
-                                      />
-                                    ) : (
-                                      <Paintbrush className="text-slate-200" size={24} />
-                                    )}
-                                  </div>
-                                  <div className="flex-1 min-w-0 py-1 pr-8">
-                                    <div className="flex items-center gap-2">
-                                      <h5 className="font-bold text-slate-800 truncate">{d.name}</h5>
-                                      {d.url && (
-                                        <a
-                                          href={d.url}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="p-1.5 text-indigo-500 hover:bg-indigo-50 rounded-lg transition-colors"
-                                          title="查看商品連結"
-                                        >
-                                          <ExternalLink size={14} />
-                                        </a>
-                                      )}
-                                    </div>
-                                    <p className="text-sm text-slate-500 leading-snug mt-1 line-clamp-2">{d.description || '無詳細描述'}</p>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Images Section */}
-                        {room.images && room.images.length > 0 && (
-                          <div className="space-y-4">
-                            <div className="w-full text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center">
-                              <ImageIcon size={14} className="mr-2 text-indigo-400" /> 空間參考圖片：
-                            </div>
-                            <div className="flex flex-wrap gap-3">
-                              {room.images.map((img, idx) => (
-                                <img
-                                  key={idx}
-                                  src={img}
-                                  onClick={() => setPreviewImage(img)}
-                                  className="w-24 h-24 object-cover rounded-xl border border-slate-100 cursor-zoom-in hover:scale-105 transition-transform shadow-sm"
-                                  alt="空間參考"
-                                />
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <BriefingView
+                rooms={selectedProject?.rooms || []}
+                onPreviewImage={setPreviewImage}
+              />
             </div>
           </div>
         )}
