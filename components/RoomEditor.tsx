@@ -950,80 +950,110 @@ export const RoomEditor: React.FC<RoomEditorProps> = ({ rooms, onChange }) => {
 
                     {/* Expanded Detail Section */}
                     {expandedRoomIds.has(room.id) && (reqCount > 0 || furCount > 0 || decCount > 0 || imgCount > 0) && (
-                      <div className="px-4 pb-4 pt-0 space-y-3">
-                        <div className="border-t border-slate-100 pt-3" />
+                      <div className="px-4 pb-4 border-t border-slate-100">
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 pt-3">
 
-                        {reqCount > 0 && (
-                          <div>
-                            <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1">
-                              <FileText size={11} /> 需求項目
-                            </h4>
-                            <ul className="space-y-1">
-                              {(room.requirements || []).map(req => (
-                                <li key={req.id} className="flex items-start gap-2 text-sm text-slate-600">
-                                  <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full mt-1.5 shrink-0" />
-                                  {req.text}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-
-                        {furCount > 0 && (
-                          <div>
-                            <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1">
-                              <Armchair size={11} /> 家俱清單
-                            </h4>
-                            <ul className="space-y-1">
-                              {(room.furniture || []).map(f => (
-                                <li key={f.id} className="flex items-center gap-2 text-sm text-slate-600">
-                                  <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full shrink-0" />
-                                  <span>{f.name}</span>
-                                  {f.optional && (
-                                    <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-500">非必要</span>
-                                  )}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-
-                        {decCount > 0 && (
-                          <div>
-                            <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1">
-                              <Paintbrush size={11} /> 裝潢清單
-                            </h4>
-                            <ul className="space-y-1">
-                              {(room.decorations || []).map(d => (
-                                <li key={d.id} className="flex items-center gap-2 text-sm text-slate-600">
-                                  <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full shrink-0" />
-                                  <span>{d.name}</span>
-                                  {d.optional && (
-                                    <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-500">非必要</span>
-                                  )}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-
-                        {imgCount > 0 && (
-                          <div>
-                            <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1">
-                              <ImageIcon size={11} /> 參考圖片
-                            </h4>
-                            <div className="flex flex-wrap gap-2">
-                              {(room.images || []).map((img, idx) => (
-                                <img
-                                  key={idx}
-                                  src={img}
-                                  className="w-16 h-16 object-cover rounded-lg border border-slate-200"
-                                  alt="參考圖片"
-                                />
-                              ))}
+                          {reqCount > 0 && (
+                            <div>
+                              <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                                <FileText size={11} /> 需求項目
+                              </h4>
+                              <ul className="space-y-0.5">
+                                {(room.requirements || []).map(req => (
+                                  <li key={req.id} className="flex items-start gap-1.5 text-xs text-slate-600">
+                                    <span className="w-1 h-1 bg-indigo-400 rounded-full mt-1.5 shrink-0" />
+                                    {req.text}
+                                  </li>
+                                ))}
+                              </ul>
                             </div>
-                          </div>
-                        )}
+                          )}
+
+                          {furCount > 0 && (
+                            <div>
+                              <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                                <Armchair size={11} /> 家俱清單
+                              </h4>
+                              <ul className="space-y-1">
+                                {(room.furniture || []).map(f => (
+                                  <li key={f.id} className="flex items-center gap-2">
+                                    {f.image ? (
+                                      <img src={f.image} className="w-8 h-8 object-cover rounded border border-slate-200 shrink-0" alt={f.name} />
+                                    ) : (
+                                      <div className="w-8 h-8 bg-slate-50 rounded border border-slate-200 flex items-center justify-center shrink-0">
+                                        <Armchair size={12} className="text-slate-300" />
+                                      </div>
+                                    )}
+                                    <div className="min-w-0 flex-1">
+                                      <div className="flex items-center gap-1">
+                                        <span className="text-xs font-medium text-slate-700 truncate">{f.name}</span>
+                                        {f.optional && <span className="text-[9px] px-1 py-px rounded bg-amber-50 text-amber-500 shrink-0">非必要</span>}
+                                        {f.url && (
+                                          <a href={f.url} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="shrink-0">
+                                            <LinkIcon size={10} className="text-indigo-400 hover:text-indigo-600" />
+                                          </a>
+                                        )}
+                                      </div>
+                                      {f.description && <p className="text-[10px] text-slate-400 truncate">{f.description}</p>}
+                                    </div>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+
+                          {decCount > 0 && (
+                            <div>
+                              <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                                <Paintbrush size={11} /> 裝潢清單
+                              </h4>
+                              <ul className="space-y-1">
+                                {(room.decorations || []).map(d => (
+                                  <li key={d.id} className="flex items-center gap-2">
+                                    {d.image ? (
+                                      <img src={d.image} className="w-8 h-8 object-cover rounded border border-slate-200 shrink-0" alt={d.name} />
+                                    ) : (
+                                      <div className="w-8 h-8 bg-slate-50 rounded border border-slate-200 flex items-center justify-center shrink-0">
+                                        <Paintbrush size={12} className="text-slate-300" />
+                                      </div>
+                                    )}
+                                    <div className="min-w-0 flex-1">
+                                      <div className="flex items-center gap-1">
+                                        <span className="text-xs font-medium text-slate-700 truncate">{d.name}</span>
+                                        {d.optional && <span className="text-[9px] px-1 py-px rounded bg-amber-50 text-amber-500 shrink-0">非必要</span>}
+                                        {d.url && (
+                                          <a href={d.url} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="shrink-0">
+                                            <LinkIcon size={10} className="text-indigo-400 hover:text-indigo-600" />
+                                          </a>
+                                        )}
+                                      </div>
+                                      {d.description && <p className="text-[10px] text-slate-400 truncate">{d.description}</p>}
+                                    </div>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+
+                          {imgCount > 0 && (
+                            <div>
+                              <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                                <ImageIcon size={11} /> 參考圖片
+                              </h4>
+                              <div className="flex flex-wrap gap-1.5">
+                                {(room.images || []).map((img, idx) => (
+                                  <img
+                                    key={idx}
+                                    src={img}
+                                    className="w-14 h-14 object-cover rounded border border-slate-200"
+                                    alt="參考圖片"
+                                  />
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                        </div>
                       </div>
                     )}
                   </div>
