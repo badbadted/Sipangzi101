@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Project, ProjectStatus, RoomType, FurnitureItem } from './types';
+import { Project, ProjectStatus, RoomType, FurnitureItem, DecorationItem } from './types';
 import { ProjectCard } from './components/ProjectCard';
 import { RoomEditor } from './components/RoomEditor';
 import { subscribeToProjects, createProject, updateProject, deleteProject } from './services/projectService';
@@ -12,6 +12,7 @@ import {
   Trash2,
   AlertTriangle,
   Armchair,
+  Paintbrush,
   Image as ImageIcon,
   X,
   FileText,
@@ -501,6 +502,49 @@ const App: React.FC = () => {
                                       )}
                                     </div>
                                     <p className="text-sm text-slate-500 leading-snug mt-1 line-clamp-2">{f.description || '無詳細描述'}</p>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Decoration Section */}
+                        {room.decorations && room.decorations.length > 0 && (
+                          <div className="space-y-4">
+                            <div className="w-full text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center">
+                              <Paintbrush size={14} className="mr-2 text-indigo-400" /> 預計裝潢項目：
+                            </div>
+                            <div className="grid grid-cols-1 gap-3">
+                              {room.decorations.map(d => (
+                                <div key={d.id} className="flex gap-4 p-3 bg-white rounded-xl border border-slate-100 shadow-sm relative group">
+                                  <div className="w-20 h-20 bg-slate-50 rounded-lg overflow-hidden shrink-0 border border-slate-100 flex items-center justify-center">
+                                    {d.image ? (
+                                      <img
+                                        src={d.image}
+                                        className="w-full h-full object-cover cursor-zoom-in"
+                                        onClick={() => setPreviewImage(d.image!)}
+                                      />
+                                    ) : (
+                                      <Paintbrush className="text-slate-200" size={24} />
+                                    )}
+                                  </div>
+                                  <div className="flex-1 min-w-0 py-1 pr-8">
+                                    <div className="flex items-center gap-2">
+                                      <h5 className="font-bold text-slate-800 truncate">{d.name}</h5>
+                                      {d.url && (
+                                        <a
+                                          href={d.url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="p-1.5 text-indigo-500 hover:bg-indigo-50 rounded-lg transition-colors"
+                                          title="查看商品連結"
+                                        >
+                                          <ExternalLink size={14} />
+                                        </a>
+                                      )}
+                                    </div>
+                                    <p className="text-sm text-slate-500 leading-snug mt-1 line-clamp-2">{d.description || '無詳細描述'}</p>
                                   </div>
                                 </div>
                               ))}

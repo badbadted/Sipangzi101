@@ -26,6 +26,14 @@ export interface FurnitureItem {
   url?: string; // product link or reference url
 }
 
+export interface DecorationItem {
+  id: string;
+  name: string;
+  description?: string;
+  image?: string;
+  url?: string;
+}
+
 export interface RequirementItem {
   id: string;
   text: string;
@@ -41,6 +49,7 @@ export interface RoomRequirement {
   requirements?: RequirementItem[];
   priority: 'High' | 'Medium' | 'Low';
   furniture?: FurnitureItem[];
+  decorations?: DecorationItem[];
   images?: string[];
 }
 
